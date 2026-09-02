@@ -1,0 +1,30 @@
+# Demo file to test tfsec security scanning
+# DO NOT deploy this file in production
+
+# 1. Security Violation: Unenforced HTTPS on Storage Account & low TLS version
+resource "azurerm_storage_account" "insecure_storage" {
+  name                     = "insecurestorageacc123"
+  resource_group_name      = "rg-pre-pod"
+  location                 = "East US"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  
+  enable_https_traffic_only = false
+  min_tls_version           = "TLS1_0"
+  public_network_access_enabled = true
+}
+
+# 2. Security Violation: Open RDP (port 3389) to the internet (0.0.0.0/0)
+resource "azurerm_network_security_rule" "insecure_rdp" {
+  name                        = "allow_rdp_from_anywhere"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3389"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = "rg-pre-pod"
+  network_security_group_name = "nsg-test"
+}
